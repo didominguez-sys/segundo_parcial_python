@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía: Integración de SQLite con FastAPI</title>
+  <style>
+    pre code {
+  display: block;
+  white-space: pre;
+  overflow-x: auto;
+  font-size: 0.9em;
+  padding-right: 1rem;
+  }
+
+
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      max-width: 1100px;
+      padding: 0 1rem;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #222;
+      margin-top: 2rem;
+    }
+    h1 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+    code, pre {
+      background: #f4f4f4;
+      color: #c7254e;
+      padding: 0.2rem 0.4rem;
+      font-family: Consolas, monospace;
+      font-size: 0.95em;
+      border-radius: 3px;
+    }
+    pre {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    .section-divider {
+      border-top: 1px solid #ddd;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Guía de Continuidad: Integrando Bases de Datos SQLite con FastAPI (Usando SQLModel)</h1>
+  <p>Esta guía te ayudará a transformar tus aplicaciones FastAPI para que almacenen y gestionen datos de forma persistente.</p>
+
+  <h2>Objetivos clave:</h2>
+  <ul>
+    <li>Entender y configurar la conexión a una base de datos SQLite.</li>
+    <li>Definir modelos de datos que se mapeen directamente a tablas de la base de datos usando SQLModel.</li>
+    <li>Implementar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) que interactúen con la base de datos.</li>
+    <li>Aprovechar la documentación automática de FastAPI para probar la API.</li>
+  </ul>
+
+  <h2>Conceptos clave a recordar:</h2>
+  <ul>
+    <li><strong>ORM (Object-Relational Mapper):</strong> SQLModel actúa como un ORM, lo que te permite interactuar con tu base de datos utilizando objetos Python en lugar de escribir código SQL directamente. Esto hace que la gestión de la base de datos sea más intuitiva y menos propensa a errores.</li>
+    <li><strong>Asincronía (Async/Await):</strong> FastAPI es un framework asíncrono. Al integrar bases de datos, es importante que las operaciones de la base de datos sean también asíncronas para evitar bloquear el hilo principal de tu aplicación, lo que mejora significativamente el rendimiento, especialmente bajo carga. Aunque SQLite es un archivo local y Python tiene soporte integrado, el uso de herramientas asíncronas como aiosqlite (a través de SQLAlchemy o SQLModel) es fundamental para un buen rendimiento con FastAPI.</li>
+    <li><strong>Sesiones de Base de Datos:</strong> Una "sesión" es lo que mantiene los objetos en memoria y rastrea los cambios que deben guardarse en la base de datos. FastAPI usará dependencias para proporcionar una nueva sesión para cada solicitud, asegurando una gestión eficiente.</li>
+    <li><strong>Modelos de Tabla vs. Modelos de Datos:</strong> Con SQLModel, puedes definir "modelos de tabla" que representan las tablas en tu base de datos y "modelos de datos" (similares a los de Pydantic) para validar la entrada y la salida de tu API, permitiendo mayor control y seguridad (por ejemplo, ocultando campos sensibles).</li>
+  </ul>
+
+  <hr>
+
+  <h2>1. Preparación del Entorno</h2>
+  <p>Lo primero es asegurarte de que tu entorno esté listo para trabajar con bases de datos.</p>
+  <ul>
+    <li>Instala las librerías necesarias: Abre tu terminal y ejecuta:
+      <ul>
+        <li><code>fastapi</code>: El framework web que ya conoces.</li>
+        <li><code>uvicorn</code>: El servidor ASGI para ejecutar tu aplicación.</li>
+        <li><code>sqlmodel</code>: El ORM que usaremos para interactuar con la base de datos.</li>
+        <li><code>aiosqlite</code>: Un driver asíncrono para SQLite, necesario para que SQLModel/SQLAlchemy funcione de forma asíncrona con SQLite.</li>
+      </ul>
+    </li>
+    
+  </ul>
+
+  <hr>
+
+  <h2>2. Configuración de la Base de Datos</h2>
+  <p>Crea un archivo llamado <code>database.py</code> donde configurarás la conexión y las sesiones de tu base de datos.</p>
+  <pre><code>import os
+from sqlmodel import create_engine, Session, SQLModel
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+DATABASE_FILE = "database.db"
+DATABASE_URL = f"sqlite+aiosqlite:///{DATABASE_FILE}"
+
+engine = create_async_engine(DATABASE_URL, echo=True, connect_args={"check_same_thread": False})
+
+AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+async def get_async_session():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()</code></pre>
+
+  <hr>
+
+  <h2>3.1 Definición de Modelos para el proyecto Pokemon</h2>
+  <p>Aquí definirás la estructura de tus datos. Para ambos proyectos (Pokémon y Portafolio), utilizaremos la misma base.</p>
+  <p><code>models.py</code></p>
+  <pre><code>
+from typing import Optional, List
+from sqlmodel import Field, SQLModel
+
+class Pokemon(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nombre: str = Field(index=True)
+    tipo: str
+    nivel: int = Field(default=1)
+    es_legendario: bool = Field(default=False)
+
+    def __repr__(self):
+        return f"Pokemon(id={self.id}, nombre='{self.nombre}', tipo='{self.tipo}', nivel={self.nivel}, legendario={self.es_legendario})"
+
+
+  <hr>
+</code></pre>
+
+  <h2>3.2 Definición de Modelos para el proyecto portafolio de servicios</h2>
+  <p>Aquí definirás la estructura de tus datos. Para ambos proyectos (Pokémon y Portafolio), utilizaremos la misma base.</p>
+  <p><code>models.py</code></p>
+  <pre><code>
+    
+from typing import Optional, List                # Importamos Optional para tipos opcionales y List para listas tipadas
+from sqlmodel import Field, SQLModel             # Importamos Field (para metadatos de columna) y SQLModel (base para nuestros modelos)
+
+class ProyectoBase(SQLModel):
+    """
+    Modelo base que define los campos comunes para Proyecto,
+    pero no crea una tabla en la base de datos.
+    """
+    titulo: str = Field(index=True)               # Título del proyecto, indexado para búsquedas más rápidas
+    descripcion: str                              # Descripción del proyecto (cadena obligatoria)
+    url_demo: Optional[str] = None                # URL opcional de demostración; por defecto None
+    tecnologias: List[str] = Field(default_factory=list)  # Lista de tecnologías; inicia vacía
+    completado: bool = Field(default=False)       # Indica si el proyecto está completado; por defecto False
+
+class Proyecto(ProyectoBase, table=True):
+    """
+    Modelo que hereda de ProyectoBase y activa table=True
+    para crear la tabla correspondiente en la base de datos.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)  
+    # Clave primaria auto-generada; Optional porque al crear no existe aún
+
+    def __repr__(self):
+        # Representación legible de la instancia, útil al imprimir o en logs
+        return f"Proyecto(id={self.id}, titulo='{self.titulo}', completado={self.completado})"
+
+class ProyectoCreate(ProyectoBase):
+    """
+    Modelo para la creación de un proyecto.
+    Hereda todos los campos de ProyectoBase; no incluye aún el id.
+    """
+    pass
+
+class ProyectoPublic(ProyectoBase):
+    """
+    Modelo destinado a exponer datos públicamente (por ejemplo, en respuestas API).
+    Incluye los mismos campos que ProyectoBase y añade el id obligatorio.
+    """
+    id: int                                      # Exponer la clave primaria en la API pública
+
+  
+  
+  </code></pre>
+
+  <hr>
+
+  <h2>4. Implementación de la API para el proyecto Pokemon</h2>
+  <p>Aquí integrarás todo: la aplicación FastAPI, la inicialización de la base de datos y las rutas para tus operaciones CRUD.</p>
+  <p><code>main.py</code></p>
+  <pre><code>
+
+''' 
+Importamos tipos y herramientas de FastAPI y SQLModel para manejar 
+las rutas, errores HTTP, y las operaciones de base de datos.
+'''
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlmodel import Session, select
+
+'''
+Importamos funciones propias del proyecto para inicializar la base de datos
+y obtener la sesión de conexión.
+'''
+from database import create_db_and_tables, get_async_session
+
+'''
+Importamos el modelo de datos "Pokemon", que representa una tabla en la base de datos.
+'''
+from models import Pokemon
+
+'''
+Creamos la instancia principal de FastAPI. Aquí se registrarán todas las rutas.
+'''
+app = FastAPI()
+
+'''
+Esta función se ejecuta automáticamente al iniciar la aplicación.
+Se usa para crear las tablas en la base de datos si aún no existen.
+'''
+@app.on_event("startup")
+async def on_startup():
+    await create_db_and_tables()
+
+'''
+Ruta raíz de la API.
+Devuelve un mensaje de bienvenida para verificar que el servidor está funcionando.
+'''
+@app.get("/")
+async def welcome_message():
+    return {"message": "¡Bienvenido a tu API de gestión de Pokémon con FastAPI!"}
+
+'''
+Crea un nuevo Pokémon en la base de datos.
+
+- Método: POST
+- Ruta: /pokemon/
+- Entrada: un objeto tipo Pokemon (se espera en formato JSON).
+- Salida: el objeto Pokemon creado, incluyendo su ID.
+- Código de respuesta: 201 CREATED
+
+Se usa 'Depends(get_async_session)' para inyectar la sesión de base de datos automáticamente.
+'''
+@app.post("/pokemon/", response_model=Pokemon, status_code=status.HTTP_201_CREATED)
+async def create_pokemon(pokemon: Pokemon, session: Session = Depends(get_async_session)):
+    session.add(pokemon)
+    await session.commit()
+    await session.refresh(pokemon)
+    return pokemon
+
+'''
+Obtiene una lista de todos los Pokémon registrados en la base de datos.
+
+- Método: GET
+- Ruta: /pokemon/
+- Respuesta: Lista de objetos Pokemon
+'''
+@app.get("/pokemon/", response_model=List[Pokemon])
+async def read_pokemon(session: Session = Depends(get_async_session)):
+    pokemon_list = await session.exec(select(Pokemon)).all()
+    return pokemon_list
+
+'''
+Obtiene un solo Pokémon por su ID.
+
+- Método: GET
+- Ruta: /pokemon/{pokemon_id}
+- Parámetro: pokemon_id (entero)
+- Si no se encuentra, devuelve error 404
+'''
+@app.get("/pokemon/{pokemon_id}", response_model=Pokemon)
+async def read_single_pokemon(pokemon_id: int, session: Session = Depends(get_async_session)):
+    pokemon = await session.get(Pokemon, pokemon_id)
+    if not pokemon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pokémon no encontrado en la Pokedex"
+        )
+    return pokemon
+
+'''
+Actualiza un Pokémon existente por su ID.
+
+- Método: PUT
+- Ruta: /pokemon/{pokemon_id}
+- Entrada: objeto Pokemon con los campos actualizados
+- Si no existe, devuelve error 404
+'''
+@app.put("/pokemon/{pokemon_id}", response_model=Pokemon)
+async def update_pokemon(pokemon_id: int, pokemon_update: Pokemon, session: Session = Depends(get_async_session)):
+    existing_pokemon = await session.get(Pokemon, pokemon_id)
+    if not existing_pokemon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pokémon no encontrado para actualizar"
+        )
+
+    # Actualiza solo los campos que fueron proporcionados en la solicitud
+    pokemon_data = pokemon_update.model_dump(exclude_unset=True)
+    existing_pokemon.sqlmodel_update(pokemon_data)
+
+    session.add(existing_pokemon)
+    await session.commit()
+    await session.refresh(existing_pokemon)
+    return existing_pokemon
+
+'''
+Elimina un Pokémon por su ID.
+
+- Método: DELETE
+- Ruta: /pokemon/{pokemon_id}
+- Parámetro: pokemon_id (entero)
+- Si no existe, devuelve error 404
+- Respuesta: mensaje de éxito (aunque el status es 204, lo cual implica "sin contenido")
+'''
+@app.delete("/pokemon/{pokemon_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_pokemon(pokemon_id: int, session: Session = Depends(get_async_session)):
+    pokemon = await session.get(Pokemon, pokemon_id)
+    if not pokemon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pokémon no encontrado para eliminar"
+        )
+    await session.delete(pokemon)
+    await session.commit()
+    return {"message": "Pokémon eliminado exitosamente"}
+
+
+
+</code></pre>
+
+  <hr>
+
+
+  <h2>4.2 Implementación de la API portafolio de proyectos</h2>
+  <p>Aquí integrarás todo: la aplicación FastAPI, la inicialización de la base de datos y las rutas para tus operaciones CRUD.</p>
+  <p><code>main.py</code></p>
+  <pre><code>
+'''
+Importamos tipos genéricos y herramientas necesarias de FastAPI y SQLModel
+para definir la API, manejar errores, sesiones de base de datos y consultas.
+'''
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlmodel import Session, select
+
+'''
+Importamos funciones definidas en nuestro módulo `database` que permiten
+inicializar la base de datos y obtener una sesión de conexión.
+'''
+from database import create_db_and_tables, get_async_session
+
+'''
+Importamos nuestros modelos de datos:
+- Proyecto: representa la tabla en la base de datos.
+- ProyectoCreate: modelo para creación (entrada).
+- ProyectoPublic: modelo para respuesta pública (salida).
+'''
+from models import Proyecto, ProyectoCreate, ProyectoPublic
+
+'''
+Instancia principal de FastAPI, donde se registrarán todas las rutas.
+'''
+app = FastAPI()
+
+'''
+Al iniciar la aplicación, se ejecuta esta función para crear las tablas
+en la base de datos si aún no existen.
+'''
+@app.on_event("startup")
+async def on_startup():
+    await create_db_and_tables()
+
+'''
+Ruta raíz (GET /) que devuelve un mensaje de bienvenida.
+Sirve para verificar que la API está funcionando correctamente.
+'''
+@app.get("/")
+async def welcome_message():
+    return {"message": "¡Bienvenido a tu API de gestión de Proyectos con FastAPI!"}
+
+'''
+Crea un nuevo proyecto en la base de datos.
+
+- Método: POST
+- Ruta: /proyectos/
+- Entrada: ProyectoCreate (título, descripción, etc.)
+- Salida: ProyectoPublic con el ID incluido.
+'''
+@app.post("/proyectos/", response_model=ProyectoPublic, status_code=status.HTTP_201_CREATED)
+async def create_project(proyecto: ProyectoCreate, session: Session = Depends(get_async_session)):
+    db_proyecto = Proyecto.model_validate(proyecto)
+    session.add(db_proyecto)
+    await session.commit()
+    await session.refresh(db_proyecto)
+    return db_proyecto
+
+'''
+Obtiene una lista de proyectos, con filtros opcionales por tecnología y estado.
+
+- Método: GET
+- Ruta: /proyectos/
+- Parámetros opcionales:
+    - completado: bool -> filtra por estado (True/False)
+    - tecnologia: str -> filtra si contiene la tecnología dada
+- Salida: Lista de objetos ProyectoPublic
+'''
+@app.get("/proyectos/", response_model=List[ProyectoPublic])
+async def read_projects(session: Session = Depends(get_async_session), completado: bool = None, tecnologia: str = None):
+    query = select(Proyecto)
+    if completado is not None:
+        query = query.where(Proyecto.completado == completado)
+    if tecnologia:
+        query = query.where(Proyecto.tecnologias.contains(tecnologia))
+    proyectos = await session.exec(query).all()
+    return proyectos
+
+'''
+Devuelve los detalles de un solo proyecto, buscándolo por su ID.
+
+- Método: GET
+- Ruta: /proyectos/{project_id}
+- Si no existe, retorna error 404
+'''
+@app.get("/proyectos/{project_id}", response_model=ProyectoPublic)
+async def read_single_project(project_id: int, session: Session = Depends(get_async_session)):
+    proyecto = await session.get(Proyecto, project_id)
+    if not proyecto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proyecto no encontrado")
+    return proyecto
+
+'''
+Actualiza un proyecto existente.
+
+- Método: PUT
+- Ruta: /proyectos/{project_id}
+- Entrada: ProyectoCreate (datos actualizados)
+- Salida: ProyectoPublic (estado final del proyecto)
+- Si el proyecto no existe, retorna error 404
+'''
+@app.put("/proyectos/{project_id}", response_model=ProyectoPublic)
+async def update_project(project_id: int, proyecto_update: ProyectoCreate, session: Session = Depends(get_async_session)):
+    existing_project = await session.get(Proyecto, project_id)
+    if not existing_project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proyecto no encontrado para actualizar")
+
+    project_data = proyecto_update.model_dump(exclude_unset=True)
+    existing_project.sqlmodel_update(project_data)
+
+    session.add(existing_project)
+    await session.commit()
+    await session.refresh(existing_project)
+    return existing_project
+
+'''
+Elimina un proyecto de la base de datos por su ID.
+
+- Método: DELETE
+- Ruta: /proyectos/{project_id}
+- Si no existe, retorna error 404
+- Aunque devuelve status 204 (sin contenido), también se incluye un mensaje de éxito
+'''
+@app.delete("/proyectos/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project(project_id: int, session: Session = Depends(get_async_session)):
+    proyecto = await session.get(Proyecto, project_id)
+    if not proyecto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proyecto no encontrado para eliminar")
+    await session.delete(proyecto)
+    await session.commit()
+    return {"message": "Proyecto eliminado exitosamente"}
+
+  
+  </code></pre>
+
+  <hr>
+
+  <h2>5. Ejecutar y Probar la API</h2>
+  <ol>
+    <li>Ejecuta tu aplicación: Abre tu terminal en el directorio raíz de tu proyecto (<code>my_fastapi_app/</code>) y ejecuta:</li>
+    <li>Esto iniciará tu servidor Uvicorn. El parámetro <code>--reload</code> hará que el servidor se reinicie automáticamente cada vez que guardes cambios en tus archivos.</li>
+    <li>Accede a la Documentación Interactiva:
+      <ul>
+        <li>Visita <a href="http://127.0.0.1:8000/docs">http://127.0.0.1:8000/docs</a> para usar Swagger UI.</li>
+        <li>También puedes visitar <a href="http://127.0.0.1:8000/redoc">http://127.0.0.1:8000/redoc</a> para una vista alternativa.</li>
+        <li>Puedes descargar el archivo JSON de OpenAPI completo desde la interfaz de Swagger UI.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>Ejemplo de prueba en /docs:</h3>
+  <ul>
+    <li><strong>Para crear un Pokémon:</strong>
+      <ol>
+        <li>Ve a la sección <code>POST /pokemon/</code>.</li>
+        <li>Haz clic en "Try it out".</li>
+        <li>En el campo "Request body", introduce un JSON como este:</li>
+        <pre><code>{
+  "nombre": "Charmander",
+  "tipo": "Fuego",
+  "nivel": 5,
+  "es_legendario": false
+}</code></pre>
+        <li>Haz clic en "Execute". Deberías ver una respuesta con el Pokémon creado, incluyendo su ID generado.</li>
+      </ol>
+    </li>
+    <li><strong>Para listar Proyectos:</strong>
+      <ol>
+        <li>Ve a la sección <code>GET /proyectos/</code>.</li>
+        <li>Haz clic en "Try it out".</li>
+        <li>Puedes dejar los campos <code>completado</code> y <code>tecnologia</code> vacíos para ver todos los proyectos, o probar con <code>completado: true</code> o <code>tecnologia: "Python"</code>.</li>
+        <li>Haz clic en "Execute". Verás la lista de proyectos registrados.</li>
+      </ol>
+    </li>
+  </ul>
+  <h2>Reflexión final</h2>
+  <p>
+    Al implementar esta guía, pasarás de tener una API con datos efímeros a una API robusta y persistente, capaz de almacenar y gestionar información de forma duradera. Esta habilidad es fundamental para construir cualquier aplicación web real.
+  </p>
+  <p>
+    La documentación interactiva que FastAPI genera automáticamente es tu mejor aliada para entender cómo funciona tu API y para depurarla fácilmente.
+  </p>
+  <blockquote>
+    Piensa en tu API como un archivista muy organizado. Antes, cuando usabas listas en memoria, era como si el archivista recordara todo lo que le decías, pero cada mañana al llegar a la oficina, su memoria se "borraba". Ahora, con SQLite y SQLModel, es como si el archivista tuviera un sistema de archivado físico (la base de datos), donde guarda cada documento (Pokémon, Proyecto) de manera estructurada. No solo puede recordar lo que le dijiste ayer, sino que puede consultar, añadir, modificar o borrar documentos de forma permanente, y lo hace de una manera tan eficiente y estandarizada que incluso si mañana lo reemplaza otro archivista (otro desarrollador), sabrá exactamente cómo interactuar con el archivo gracias a la documentación clara y precisa que viene con el sistema.
+  </blockquote>
+
+</body>
+</html>

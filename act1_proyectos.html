@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad FastAPI - API Pokémon y Portafolio</title>
+  <style>
+    :root {
+      --main-blue: #1976d2;
+      --light-blue: #e3f2fd;
+      --dark-blue: #0d47a1;
+      --accent-blue: #64b5f6;
+      --bg-blue: #f5faff;
+      --border-blue: #90caf9;
+      --warn-blue: #bbdefb;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 2em auto;
+      max-width: 1000px;
+      line-height: 1.7;
+      padding: 20px;
+      background-color: var(--bg-blue);
+      color: var(--dark-blue);
+    }
+
+    h1, h2 {
+      color: var(--main-blue);
+    }
+
+    h1 {
+      border-bottom: 2px solid var(--main-blue);
+      padding-bottom: 5px;
+    }
+
+    code {
+      background-color: var(--warn-blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+      color: var(--dark-blue);
+    }
+
+    pre {
+      background-color: var(--light-blue);
+      border-left: 5px solid var(--main-blue);
+      padding: 1em;
+      overflow-x: auto;
+    }
+
+    ul {
+      margin-top: 0;
+    }
+
+    hr {
+      margin: 40px 0;
+      border: none;
+      border-top: 2px solid var(--border-blue);
+    }
+
+    .seccion {
+      margin-bottom: 3em;
+    }
+
+    /* Adapted alert/info boxes */
+    .main-banner {
+      background: var(--accent-blue);
+      border: 2px solid var(--main-blue);
+      padding: 1.5em;
+      margin-bottom: 2em;
+      font-size: 1.25em;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+    }
+    .main-banner h1 {
+      margin-top: 0;
+      color: var(--dark-blue);
+    }
+
+    .important-box {
+      background: var(--warn-blue);
+      border-left: 8px solid var(--main-blue);
+      padding: 1.5em;
+      margin-bottom: 2em;
+      font-size: 1.15em;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+    }
+    .important-box strong {
+      color: var(--dark-blue);
+      font-size: 1.2em;
+      display: block;
+      margin-bottom: 0.5em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="important-box">
+    <h4>Para poner en práctica tus conocimientos tienes como opción trabajar en un proyecto relacionado con Pokemón
+      o en un proyecto de portafolio  web donde evidencias tu experiencia trabajando con tecnologias de desarrollo o tu experiencia
+    en las TICs para conseguir tu primer empleo</h4>
+  </div>
+  <div class="important-box">
+    <strong>¡Importante!</strong>
+    Lo desarrollado en esta actividad corresponde a un 40% del parcial. El otro 40 % será hacer la actividad que da 
+    continuidad a uno de los 2 proyectos, pero ahora haciendo conectividad con una base de datos
+  </div>
+
+
+  <h1>Opción 2: API de Registro de Proyectos para Portafolio Web</h1>
+  <div class="seccion">
+    <p>Esta actividad te permitirá construir la base de una API que un estudiante junior podría usar para mostrar sus proyectos web y/o multimedia.</p>
+    <p><strong>Objetivo:</strong> Crear una API para añadir, listar y consultar los proyectos de un portafolio personal.</p>
+    <p><strong>Conceptos clave a aplicar:</strong></p>
+    <ul>
+      <li><strong>Instalación y configuración básica1:</strong>
+        <ul>
+          <li>Asegúrate de tener FastAPI y Uvicorn instalados.</li>
+          <li>Crea un nuevo proyecto y tu archivo <code>main.py</code>.</li>
+          <li>Inicia tu aplicación FastAPI y el servidor Uvicorn con <code>--reload</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta raíz (/):</strong>
+        <ul>
+          <li>Configura una ruta raíz que devuelva un mensaje como <code>"API de Registro de Proyectos para Portafolio"</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Modelo de Datos con Pydantic (Proyecto):</strong>
+        <ul>
+          <li>Define una clase <code>Proyecto</code> usando <code>BaseModel</code> de Pydantic.</li>
+          <li>Incluye atributos como:
+            <ul>
+              <li><code>titulo</code> (cadena, obligatorio).</li>
+              <li><code>descripcion</code> (cadena).</li>
+              <li><code>url_demo</code> (cadena, opcional).</li>
+              <li><code>tecnologias</code> (lista de cadenas).</li>
+              <li><code>completado</code> (booleano, predeterminado <code>False</code>).</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><strong>Lista de Proyectos (en memoria):</strong>
+        <ul>
+          <li>Declara una lista vacía global llamada <code>proyectos_registrados</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Añadir" un Proyecto (POST):</strong>
+        <ul>
+          <li>Crea un punto final (por ejemplo, <code>/proyectos</code>) para solicitudes HTTP POST.</li>
+          <li>Este punto recibirá un objeto <code>Proyecto</code> en el cuerpo de la solicitud JSON.</li>
+          <li>Añade el proyecto a la lista <code>proyectos_registrados</code> y devuelve el proyecto añadido o la lista actualizada.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Listar" todos los Proyectos (GET):</strong>
+        <ul>
+          <li>Crea un punto final (por ejemplo, <code>/proyectos</code>) para solicitudes HTTP GET que devuelva la lista completa.</li>
+          <li>Usa <code>response_model</code> para indicar que la respuesta será una lista de objetos <code>Proyecto</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Ver" un Proyecto Específico (GET con parámetro de ruta):</strong>
+        <ul>
+          <li>Implementa una ruta (por ejemplo, <code>/proyectos/{project_id}</code>).</li>
+          <li><strong>Manejo de Errores (HTTPException):</strong> Si el <code>project_id</code> no existe, lanza una <code>HTTPException</code> con código 404.</li>
+          <li>Utiliza el <code>response_model</code> para definir la estructura de respuesta.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Filtrar" Proyectos (GET con parámetro de consulta - Opcional):</strong>
+        <ul>
+          <li>Ejemplo: <code>/?completado=true</code> o <code>/?tecnologia=Python</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Documentación Interactiva para tu Portafolio:</strong>
+        <ul>
+          <li>Accede a la documentación en <code>/docs</code>.</li>
+          <li>Practica el uso de Swagger UI para añadir, listar y ver tus proyectos.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <h2>Analogía</h2>
+  <p><strong>Piensa en FastAPI como un chef muy eficiente y organizado para tu restaurante (tu aplicación web).</strong></p>
+  <ul>
+    <li>Cuando recibes un pedido (una solicitud HTTP a tu API), el chef (FastAPI) sabe exactamente qué plato preparar (qué función de ruta ejecutar)</li>
+    <li>Los Pydantic Models son como las recetas estandarizadas y validadas del chef. Aseguran que los ingredientes (los datos que envías o recibes) tengan la forma y calidad correctas, evitando desastres en la cocina (errores en tu aplicación).</li>
+    <li>La documentación interactiva (/docs) es como el menú detallado del restaurante, pero con la capacidad de probar cada plato antes de pedirlo.</li>
+  </ul>
+
+</body>
+</html>

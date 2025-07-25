@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Guía de Inicio Rápido con FastAPI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      max-width: 800px;
+      padding: 0 1rem;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #222;
+      margin-top: 2rem;
+    }
+    h1 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+    code, pre {
+      background: #f4f4f4;
+      color: #c7254e;
+      padding: 0.2rem 0.4rem;
+      font-family: Consolas, monospace;
+      font-size: 0.95em;
+      border-radius: 3px;
+    }
+    pre {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    .section-divider {
+      border-top: 1px solid #ddd;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Guía de Inicio Rápido con FastAPI: Construyendo una API REST en Python</h1>
+
+<p>Bienvenido a esta guía sobre FastAPI, un marco de trabajo web (web framework) diseñado específicamente para construir aplicaciones API con Python. FastAPI es extremadamente popular, ofrece un alto rendimiento y viene con características muy útiles.</p>
+
+<h2>Beneficios clave de usar FastAPI:</h2>
+<ul>
+  <li>Fácil de aprender: Su sintaxis es intuitiva y sencilla.</li>
+  <li>Rápido de desarrollar: Incluye abstracciones útiles que aceleran el desarrollo.</li>
+  <li>Asíncrono por defecto: Esto permite un excelente rendimiento al manejar múltiples solicitudes concurrentes</li>
+</ul>
+<p>Estas características lo convierten en una opción muy sólida para construir cualquier tipo de backend en Python. En esta guía, aprenderemos a instalar FastAPI, construir nuestra primera aplicación y explorar algunas de sus funciones incorporadas, como la documentación interactiva.</p>
+
+<div class="section-divider"></div>
+
+<h2>1. Instalación de FastAPI y Uvicorn</h2>
+<p>Para comenzar, necesitarás instalar tanto FastAPI como Uvicorn. Uvicorn es el servidor que usaremos para probar y ejecutar nuestras aplicaciones FastAPI.</p>
+<p>Abre tu terminal y ejecuta los siguientes comandos:</p>
+<pre><code>pip install fastapi
+pip install uvicorn</code></pre>
+
+<div class="section-divider"></div>
+
+<h2>2. Creación de tu Primera Aplicación FastAPI</h2>
+<p>Una vez finalizada la instalación, crea un nuevo directorio para tu proyecto y ábrelo en tu editor de código. Luego, crea un archivo llamado <code>main.py</code>.</p>
+<p>En tu archivo <code>main.py</code>, importa FastAPI y úsalo para crear una nueva instancia de aplicación:</p>
+<pre><code># main.py
+from fastapi import FastAPI
+
+# Crear una nueva aplicación FastAPI
+aplicacion = FastAPI()</code></pre>
+
+<p><strong>Definiendo tu primera ruta (endpoint):</strong> Las rutas (routes) en FastAPI se utilizan para definir las diferentes URLs a las que tu aplicación debe responder. Así es como se define una ruta para el método HTTP GET en la ruta raíz (<code>"/"</code>):</p>
+<pre><code># main.py
+from fastapi import FastAPI
+
+aplicacion = FastAPI()
+
+@aplicacion.get("/")
+def leer_raiz():
+    """
+    Esta función se llamará cuando alguien visite la ruta raíz.
+    Devuelve un objeto simple.
+    """
+    return {"mensaje": "Hola Mundo"}</code></pre>
+
+<div class="section-divider"></div>
+
+<h2>3. Ejecutar el Servidor FastAPI</h2>
+<p>Para ejecutar tu servidor, regresa a la terminal y usa Uvicorn.</p>
+<p>Tu comando debería verse así:</p>
+<pre><code>uvicorn main:aplicacion --reload</code></pre>
+<ul>
+  <li><code>uvicorn</code>: El servidor para ejecutar tu aplicación.</li>
+  <li><code>main</code>: El nombre de tu archivo Python (sin la extensión <code>.py</code>).</li>
+  <li><code>aplicacion</code>: El nombre de la instancia de tu aplicación FastAPI dentro de <code>main.py</code>.</li>
+  <li><code>--reload</code>: Esta bandera hace que el servidor se actualice automáticamente cada vez que hagas cambios en el archivo.</li>
+</ul>
+<p>Deberías ver una salida en tu terminal indicando que el servidor se está ejecutando, y una URL (comúnmente <code>http://127.0.0.1:8000</code>). Si haces clic en esta URL, podrás ver la ruta de la API y el mensaje “Hola Mundo” devuelto.</p>
+
+<div class="section-divider"></div>
+
+<h2>4. Añadiendo Nuevas Rutas</h2>
+<p>Ahora que tienes una aplicación básica funcionando, veamos cómo agregar más rutas. Las rutas son las diferentes URLs (por ejemplo: <code>/elementos</code>, <code>/usuarios</code>) a las que tu aplicación puede responder.</p>
+<p>Digamos que queremos construir una aplicación de lista de tareas pendientes. Necesitaremos rutas para agregar o ver elementos.</p>
+
+<h3>A. Creando un Punto Final para Crear Elementos (POST)</h3>
+<p>Primero, inicializa una lista vacía para tus elementos en tu <code>main.py</code>:</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+elementos_lista = []  # Nuestra lista de cosas por hacer</code></pre>
+
+<p>A continuación, crearemos un nuevo punto final llamado <code>crear_elemento</code>. Los usuarios accederán a este enviando una solicitud HTTP POST a la ruta <code>/elementos/</code>. Inicialmente, aceptará el elemento como un parámetro de consulta.</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+elementos_lista = []
+
+@aplicacion.post("/elementos/")
+def crear_elemento(elemento: str):  # 'elemento' como parámetro de consulta
+    elementos_lista.append(elemento)
+    return {"lista_actualizada": elementos_lista}</code></pre>
+
+<p>Para probar esto, abre una nueva terminal (mientras el servidor Uvicorn sigue ejecutándose) y envía esta solicitud curl:</p>
+<pre><code>curl -X POST "http://127.0.0.1:8000/elementos/?elemento=manzana"</code></pre>
+<p>Verás la lista actual de elementos ahora incluyendo “manzana”.</p>
+<p>Puedes agregar más:</p>
+<pre><code>curl -X POST "http://127.0.0.1:8000/elementos/?elemento=naranja"</code></pre>
+<p>Ahora la lista contendrá “manzana” y “naranja”.</p>
+
+<h3>B. Creando un Punto Final para Ver un Elemento Específico (GET)</h3>
+<p>Para ver un elemento específico en la lista, crearemos un nuevo punto final usando el decorador <code>@aplicacion.get</code>. La ruta será <code>/elementos/{id_elemento}</code>. Las llaves <code>{}</code> indican que <code>id_elemento</code> es un parámetro de ruta (path parameter).</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+@aplicacion.get("/elementos/{id_elemento}")
+def obtener_elemento(id_elemento: int):  # FastAPI convierte el tipo
+    return elementos_lista[id_elemento]</code></pre>
+<p><strong>¡Cuidado!</strong> Cada vez que haces un cambio en el código y el servidor se reinicia, <code>elementos_lista</code> se restablecerá a vacía. Asegúrate de agregar elementos nuevamente antes de probar este endpoint.</p>
+<p>Después de reiniciar y agregar “manzana” y “naranja”, prueba:</p>
+<pre><code>curl "http://127.0.0.1:8000/elementos/0"  # devuelve "manzana"
+curl "http://127.0.0.1:8000/elementos/1"  # devuelve "naranja"</code></pre>
+
+<div class="section-divider"></div>
+
+<h2>5. Manejo de Errores Específicos</h2>
+<p>¿Qué sucede si intentas obtener un elemento que no existe (por ejemplo, índice 3 cuando solo hay 2 elementos)? Obtendrías un error interno del servidor, poco útil para los usuarios.</p>
+<p>FastAPI permite generar errores específicos. Para un elemento no encontrado, el código estándar es <code>404 Not Found</code>. Este es un error del cliente.</p>
+<p>Para implementarlo, importa <code>HTTPException</code> de FastAPI:</p>
+<pre><code># main.py
+from fastapi import FastAPI, HTTPException  # Importar HTTPException
+
+aplicacion = FastAPI()
+
+elementos_lista = []
+
+# ... (otras rutas) ...
+
+@aplicacion.get("/elementos/{id_elemento}")
+def obtener_elemento(id_elemento: int):
+    if 0 <= id_elemento < len(elementos_lista):
+        return elementos_lista[id_elemento]
+    else:
+        # Lanzar excepción HTTP 404 si no existe el elemento
+        raise HTTPException(status_code=404, detail="Elemento no encontrado")</code></pre>
+<p>Ahora, si pruebas con un índice inexistente:</p>
+<pre><code>curl "http://127.0.0.1:8000/elementos/3"</code></pre>
+<p>Devolverá un código 404 y el mensaje “Elemento no encontrado”.</p>
+
+<div class="section-divider"></div>
+
+<h2>6. Parámetros de Solicitud (Query Parameters)</h2>
+<p>Además del parámetro de ruta (<code>id_elemento</code>), también puedes usar parámetros de consulta (query parameters).</p>
+<p>Creamos un endpoint <code>listar_elementos</code> que usa un parámetro <code>limite</code> (entero) con valor predeterminado 10:</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+@aplicacion.get("/elementos/")  # misma ruta, otro método o parámetros
+def listar_elementos(limite: int = 10):  # parámetro de consulta
+    """
+    Devuelve un número determinado de elementos de la lista.
+    FastAPI convierte automáticamente el tipo.
+    """
+    return elementos_lista[:limite]</code></pre>
+<p>FastAPI convierte “limite” a entero gracias a las anotaciones de tipo.</p>
+<p>Prueba con curl:</p>
+<pre><code>curl "http://127.0.0.1:8000/elementos/?limite=3"  # recibe primeros 3 elementos
+curl "http://127.0.0.1:8000/elementos/"           # recibe primeros 10 elementos (valor predeterminado)</code></pre>
+
+<div class="section-divider"></div>
+
+<h2>7. Uso de Modelos Pydantic para Datos Estructurados</h2>
+<p>Si tus elementos son más complejos que solo una cadena (por ejemplo: texto y estado completado), FastAPI admite modelos Pydantic, que permiten estructurar datos y validar automáticamente.</p>
+
+<h3>A. Definiendo un Modelo Pydantic</h3>
+<p>Importa <code>BaseModel</code> de Pydantic y crea una clase <code>Elemento</code> con atributos <code>texto</code> (cadena) y <code>esta_hecho</code> (booleano):</p>
+<pre><code># main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel  # Importar BaseModel
+
+aplicacion = FastAPI()
+
+elementos_lista = []
+
+class Elemento(BaseModel):
+    texto: str
+    esta_hecho: bool = False  # valor predeterminado</code></pre>
+
+<h3>B. Actualizando la Aplicación para Usar el Modelo</h3>
+<p>Actualiza tu aplicación para usar el modelo <code>Elemento</code>: en lugar de aceptar una cadena, el endpoint <code>crear_elemento</code> recibe un objeto <code>Elemento</code>:</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+@aplicacion.post("/elementos/")
+def crear_elemento(elemento: Elemento):  # recibe objeto Elemento
+    elementos_lista.append(elemento.dict())  # añade como diccionario
+    return {"lista_actualizada": elementos_lista}</code></pre>
+<p>Cuando usas un modelo Pydantic como argumento, FastAPI espera que los datos se envíen como JSON en el cuerpo de la solicitud, no como parámetro de consulta.</p>
+<p>Prueba con curl enviando JSON:</p>
+<pre><code>curl -X POST -H "Content-Type: application/json" -d '{"texto": "Comprar leche"}' "http://127.0.0.1:8000/elementos/"</code></pre>
+<p>La respuesta será un objeto conforme al modelo <code>Elemento</code>. Si no especificas <code>esta_hecho</code>, por defecto será <code>False</code>.</p>
+
+<h3>C. Validación de Modelos (Campos Obligatorios)</h3>
+<p>Una ventaja de Pydantic es la validación: si quieres que un campo sea obligatorio (por ejemplo, <code>texto</code>), simplemente elimina su valor predeterminado:</p>
+<pre><code># main.py
+# ... (código anterior) ...
+
+class Elemento(BaseModel):
+    texto: str  # ahora obligatorio
+    esta_hecho: bool = False</code></pre>
+<p>Si envías una solicitud con un campo diferente (por ejemplo <code>"titulo"</code> en lugar de <code>"texto"</code>), FastAPI validará y devolverá un error automáticamente.</p>
+
+<div class="section-divider"></div>
+
+<h2>8. Modelado de Respuestas (Response Models)</h2>
+<p>Puedes también definir el modelo para las respuestas usando el argumento <code>response_model</code> en el decorador:</p>
+<pre><code># main.py
+# ... (código anterior) ...
+from typing import List  # para indicar lista de Elemento
+
+@aplicacion.get("/elementos/{id_elemento}", response_model=Elemento)
+def obtener_elemento(id_elemento: int):
+    if 0 <= id_elemento < len(elementos_lista):
+        return elementos_lista[id_elemento]
+    else:
+        raise HTTPException(status_code=404, detail="Elemento no encontrado")
+
+@aplicacion.get("/elementos/", response_model=List[Elemento])
+def listar_elementos(limite: int = 10):
+    return elementos_lista[:limite]</code></pre>
+<p>Esto asegura que las respuestas se ajustan a los modelos definidos, lo cual es muy útil para clientes frontend como React o NextJS.</p>
+
+<div class="section-divider"></div>
+
+<h2>9. Documentación Interactiva de FastAPI</h2>
+<p>Una de las características destacadas de FastAPI es su documentación interactiva gratuita.</p>
+<p>Cuando inicias el servidor FastAPI, puedes acceder a:</p>
+<ul>
+  <li><code>/docs</code>: interfaz Swagger UI donde puedes ver y probar todos los endpoints.</li>
+  <li><code>/redoc</code>: otra interfaz alternativa con distinto estilo.</li>
+  <li><code>/openapi.json</code>: archivo JSON con la definición completa de la API, útil para generar documentación o clientes frontend.</li>
+</ul>
+<p>Desde Swagger UI puedes:</p>
+<ul>
+  <li>Ver todos tus endpoints y métodos HTTP.</li>
+  <li>Inspeccionar los parámetros que aceptan.</li>
+  <li>Probarlos directamente desde la interfaz (“Try it out” → “Execute”).</li>
+  <li>Ver el comando curl equivalente y la respuesta.</li>
+</ul>
+<p>Esto facilita enormemente explorar y probar tu API sin usar la terminal.</p>
+
+<div class="section-divider"></div>
+
+<h2>10. Comparación de FastAPI con Otros Marcos de Trabajo</h2>
+<p><strong>FastAPI vs. Flask:</strong></p>
+<ul>
+  <li>Rendimiento: FastAPI es asíncrono por defecto, manejando más solicitudes concurrentes.</li>
+  <li>Facilidad de uso: definiciones de rutas, modelos y validación son mucho más simples.</li>
+  <li>Adopción: Flask tiene más trayectoria y comunidad; FastAPI es más reciente pero crece rápidamente.</li>
+</ul>
+<p><strong>FastAPI vs. Django:</strong></p>
+<ul>
+  <li>Django es un framework completo con muchas funcionalidades integradas, ideal para proyectos grandes.</li>
+  <li>FastAPI es más ligero y adecuado para backends minimalistas y de alto rendimiento.</li>
+</ul>
+
+<div class="section-divider"></div>
+
+<h2>11. Próximos Pasos en FastAPI</h2>
+<p>Si te preguntas hacia dónde ir a continuación, aquí tienes algunas sugerencias:</p>
+<ul>
+  <li>Bases de datos: cómo integrar bases de datos SQL u otras con tu API.</li>
+  <li>Sistemas de usuarios y autenticación: por ejemplo tokens JWT para proteger endpoints.</li>
+  <li>Despliegue: cómo publicar tu aplicación FastAPI en un servidor (por ejemplo en AWS).</li>
+</ul>
+
+</body>
+</html>

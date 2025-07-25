@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad FastAPI - API Pokémon y Portafolio</title>
+  <style>
+    :root {
+      --main-blue: #1976d2;
+      --light-blue: #e3f2fd;
+      --dark-blue: #0d47a1;
+      --accent-blue: #64b5f6;
+      --bg-blue: #f5faff;
+      --border-blue: #90caf9;
+      --warn-blue: #bbdefb;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 2em auto;
+      max-width: 1000px;
+      line-height: 1.7;
+      padding: 20px;
+      background-color: var(--bg-blue);
+      color: var(--dark-blue);
+    }
+
+    h1, h2 {
+      color: var(--main-blue);
+    }
+
+    h1 {
+      border-bottom: 2px solid var(--main-blue);
+      padding-bottom: 5px;
+    }
+
+    code {
+      background-color: var(--warn-blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+      color: var(--dark-blue);
+    }
+
+    pre {
+      background-color: var(--light-blue);
+      border-left: 5px solid var(--main-blue);
+      padding: 1em;
+      overflow-x: auto;
+    }
+
+    ul {
+      margin-top: 0;
+    }
+
+    hr {
+      margin: 40px 0;
+      border: none;
+      border-top: 2px solid var(--border-blue);
+    }
+
+    .seccion {
+      margin-bottom: 3em;
+    }
+
+    /* Adapted alert/info boxes */
+    .main-banner {
+      background: var(--accent-blue);
+      border: 2px solid var(--main-blue);
+      padding: 1.5em;
+      margin-bottom: 2em;
+      font-size: 1.25em;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+    }
+    .main-banner h1 {
+      margin-top: 0;
+      color: var(--dark-blue);
+    }
+
+    .important-box {
+      background: var(--warn-blue);
+      border-left: 8px solid var(--main-blue);
+      padding: 1.5em;
+      margin-bottom: 2em;
+      font-size: 1.15em;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+    }
+    .important-box strong {
+      color: var(--dark-blue);
+      font-size: 1.2em;
+      display: block;
+      margin-bottom: 0.5em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="important-box">
+    <h4>Para poner en práctica tus conocimientos tienes como opción trabajar en un proyecto relacionado con Pokemón
+      o en un proyecto de portafolio  web donde evidencias tu experiencia trabajando con tecnologias de desarrollo o tu experiencia
+    en las TICs para conseguir tu primer empleo</h4>
+    </h6>
+  </div>
+  <div class="important-box">
+    <strong>¡Importante!</strong>
+    Lo desarrollado en esta actividad corresponde a un 40% del parcial. El otro 40 % será hacer la actividad que da 
+    continuidad a uno de los 2 proyectos, pero ahora haciendo conectividad con una base de datos
+  </div>
+  <h1>Actividad Opción 1: Crear una API de Colección de Pokémon</h1>
+  <div class="seccion"></div>
+    <p>Esta actividad te permitirá simular una aplicación donde puedes "atrapar" y gestionar tus Pokémon favoritos utilizando FastAPI.</p>
+    <p><strong>Objetivo:</strong> Desarrollar una API que permita añadir, listar y ver detalles de Pokémon.</p>
+    <p><strong>Conceptos clave a aplicar:</strong></p>
+    <ul>
+      <li><strong>Instalación y configuración básica1:</strong>
+        <ul>
+          <li>Abre tu terminal e instala FastAPI y Uvicorn. Recuerda que Uvicorn será el servidor para ejecutar tu aplicación.</li>
+          <li>Crea un nuevo directorio para tu proyecto y un archivo <code>main.py</code>.</li>
+          <li>Importa FastAPI y crea una nueva aplicación en <code>main.py</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta raíz (/):</strong>
+        <ul>
+          <li>Define una ruta de inicio para el método HTTP GET en tu aplicación1. Cuando alguien visite esta ruta, debería devolver un mensaje de bienvenida, por ejemplo, <code>"¡Bienvenido a tu Pokedex personal con FastAPI!"</code>.</li>
+          <li>Recuerda ejecutar tu servidor usando Uvicorn con <code>uvicorn main:app --reload</code> en tu terminal para que los cambios se actualicen automáticamente.</li>
+        </ul>
+      </li>
+      <li><strong>Modelo de Datos con Pydantic (Pokemon):</strong>
+        <ul>
+          <li>Importa <code>BaseModel</code> de Pydantic.</li>
+          <li>Crea una clase <code>Pokemon</code> que extienda <code>BaseModel</code>. Esta clase representará la estructura de un Pokémon en tu colección. Debería tener al menos los siguientes atributos:
+            <ul>
+              <li><code>nombre</code> (cadena, obligatorio).</li>
+              <li><code>tipo</code> (cadena, por ejemplo, "Fuego", "Agua", "Planta").</li>
+              <li><code>nivel</code> (entero, con un valor predeterminado como 1).</li>
+              <li><code>es_legendario</code> (booleano, con un valor predeterminado como False).</li>
+            </ul>
+          </li>
+          <li>La utilización de Pydantic hará que la validación de datos sea más sencilla y mejorará la documentación interactiva.</li>
+        </ul>
+      </li>
+      <li><strong>Lista de Pokémon (en memoria):</strong>
+        <ul>
+          <li>Crea una lista vacía global en tu <code>main.py</code> llamada <code>pokedex</code> para almacenar los Pokémon capturados.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Capturar" un Pokémon (POST):</strong>
+        <ul>
+          <li>Crea un nuevo punto final para añadir Pokémon (por ejemplo, <code>/pokemon</code>) que acepte solicitudes HTTP POST.</li>
+          <li>Este punto final deberá esperar un cuerpo de solicitud JSON que se ajuste a tu modelo <code>Pokemon</code>. Cuando recibas un Pokémon, añádelo a tu lista <code>pokedex</code>.</li>
+          <li>Puedes optar por devolver el Pokémon recién añadido o la lista completa de Pokémon después de la adición.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Listar" todos los Pokémon (GET):</strong>
+        <ul>
+          <li>Crea un punto final para listar todos los Pokémon (por ejemplo, <code>/pokemon</code>) que acepte solicitudes HTTP GET.</li>
+          <li>Este punto final simplemente devolverá la lista <code>pokedex</code> completa.</li>
+          <li>Aplica el <code>response_model</code> para asegurar que la respuesta se adhiera a un modelo Pydantic.</li>
+        </ul>
+      </li>
+      <li><strong>Ruta para "Ver" un Pokémon específico (GET con parámetro de ruta):</strong>
+        <ul>
+          <li>Implementa un punto final (por ejemplo, <code>/pokemon/{pokemon_id}</code>) donde <code>pokemon_id</code> sea un parámetro de ruta.</li>
+          <li><strong>Manejo de Errores (HTTPException):</strong> Si el <code>pokemon_id</code> no existe, lanza una <code>HTTPException</code> con código 404.</li>
+          <li>Aplica también el <code>response_model</code> para asegurar que la respuesta del Pokémon individual se ajuste a tu modelo <code>Pokemon</code>.</li>
+        </ul>
+      </li>
+      <li><strong>Documentación Interactiva:</strong>
+        <ul>
+          <li>Visita <code>/docs</code> o <code>/redoc</code> en la URL de tu servidor FastAPI.</li>
+          <li>Explora y prueba cada uno de tus puntos finales directamente desde Swagger UI.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+
+  <hr>
+
+  <h2>Analogía</h2>
+  <p><strong>Piensa en FastAPI como un chef muy eficiente y organizado para tu restaurante (tu aplicación web).</strong></p>
+  <ul>
+    <li>Cuando recibes un pedido (una solicitud HTTP a tu API), el chef (FastAPI) sabe exactamente qué plato preparar (qué función de ruta ejecutar)</li>
+    <li>Los Pydantic Models son como las recetas estandarizadas y validadas del chef. Aseguran que los ingredientes (los datos que envías o recibes) tengan la forma y calidad correctas, evitando desastres en la cocina (errores en tu aplicación).</li>
+    <li>La documentación interactiva (/docs) es como el menú detallado del restaurante, pero con la capacidad de probar cada plato antes de pedirlo.</li>
+  </ul>
+
+</body>
+</html>
