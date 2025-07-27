@@ -73,34 +73,46 @@
        <code>
           cd C:\Users\TuUsuario\Documents\tunombreapellido
       </code>
-  </ol>
+  
 </p>
 
- <p>
-    3. Crea el entorno virtual de python: 
- </p>
+ 
+     <li>Crea el entorno virtual de python:</li> 
+
  
   <code>
     python -m venv venv
   </code>
- 
-
-<p>
-    4. Activa el entorno virtual:
-</p>
+    <li>
+      Activa el entorno virtual:
+    </li>
+<code>
   venv\Scripts\activate
-<p>Deberías ver algo como <code>(venv)</code> al inicio de tu terminal, indicando que el entorno virtual está activo.</p>
-<p>Ahora, instala FastAPI y Uvicorn dentro de este entorno virtual:</p>
-<pre>
-  <p>
-    4. Instala las librerías del proyecto desde la carpeta venv\Scripts\
-  </p>
+</code>
+  
+<li>
+Deberías ver algo como <code>(venv)</code> al inicio de tu terminal, indicando que el entorno virtual está activo.
+</li>
+<li>Ahora, instala FastAPI y Uvicorn dentro de este entorno virtual:</li>
+  <li>
+    Instala las librerías del proyecto desde la carpeta venv\Scripts\
+  </li>
+
   <code>
     pip install fastapi
-    pip install uvicorn
+    <code>
+ pip install uvicorn
+    </code>
+   
   </code>
-</pre>
-
+<p>Esto instalará FastAPI y Uvicorn, permitiéndote crear y ejecutar aplicaciones FastAPI.</p>
+<p>Para verificar que todo está instalado correctamente, puedes ejecutar:</p>
+<pre><code>pip list</code></pre>
+<p>Deberías ver <code>fastapi</code> y <code>uvicorn</code> en la lista de paquetes instalados.</p>
+<p>Si ves ambos, ¡estás listo para comenzar a construir tu primera aplicación FastAPI!</p>
+<p>Si no ves alguno de ellos, asegúrate de que el entorno virtual está activo y que has ejecutado los comandos de instalación correctamente.</p>
+<p>Si necesitas instalar más paquetes en el futuro, simplemente usa <code>pip install nombre_del_paquete</code> dentro del entorno virtual.</p>
+</ol>
 <div class="section-divider"></div>
 
 <h2>2. Creación de tu Primera Aplicación FastAPI</h2>
